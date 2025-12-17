@@ -1,11 +1,23 @@
 "use client";
 import React, { useState } from "react";
 import { Button } from "./ui/button";
-import { LogIn } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
 import { DialogModal } from "./DialogModal";
+import { signOut } from "@/app/action";
 
-const AuthButton = () => {
+const AuthButton = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  if (user) {
+    return (
+      <form action={signOut}>
+        <Button type="submit" variant="ghost" size="sm" className="gap-2">
+          <LogOut className="w-4 h-4" /> Sign Out
+        </Button>
+      </form>
+    );
+  }
+
   return (
     <>
       <Button

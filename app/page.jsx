@@ -1,11 +1,15 @@
 import AddProductForm from "@/components/AddProductForm";
 import AuthButton from "@/components/AuthButton";
-import { Button } from "@/components/ui/button";
-import { Bell, LogIn, Rabbit, Shield } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { Bell, Rabbit, Shield } from "lucide-react";
 import Image from "next/image";
 
-export default function Home() {
-  const user = null;
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const products = [];
   const FEATURES = [
     {
@@ -40,7 +44,7 @@ export default function Home() {
               className="h-16 w-16 sm:h-20 sm:w-20"
             />
           </div>
-          <AuthButton />
+          <AuthButton user={user} />
         </div>
       </header>
 
