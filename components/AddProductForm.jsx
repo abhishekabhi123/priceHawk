@@ -18,12 +18,12 @@ const AddProductForm = () => {
           onChange={(e) => setUrl(e.target.value)}
           className="h-12 text-base"
           required
-          disable={isLoading}
+          disabled={isLoading}
         />
         <Button
           className="bg-orange-500 hover:bg-orange-600 h-10 sm:h-12 px-8"
           type="submit"
-          disable={isLoading}
+          disabled={isLoading}
           size={"lg"}
         >
           {isLoading ? (
