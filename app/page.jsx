@@ -1,7 +1,7 @@
 import AddProductForm from "@/components/AddProductForm";
 import AuthButton from "@/components/AuthButton";
 import { createClient } from "@/lib/supabase/server";
-import { Bell, Rabbit, Shield } from "lucide-react";
+import { Bell, Rabbit, Shield, TrendingDown } from "lucide-react";
 import Image from "next/image";
 
 export default async function Home() {
@@ -76,6 +76,19 @@ export default async function Home() {
           )}
         </div>
       </section>
+      {user && products.length === 0 && (
+        <section className="max-w-2xl mx-auto px-4 pb-20 text-center">
+          <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12">
+            <TrendingDown className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No products yet
+            </h3>
+            <p className="text-gray-600">
+              Add your first product above to start tracking process
+            </p>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
