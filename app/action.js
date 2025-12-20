@@ -13,45 +13,46 @@ export async function signOut() {
 }
 
 export async function addProduct(formData) {
-  const url = formData.url;
+  const url = formData.get("url");
   if (!url) return { error: "URL is required" };
 
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
-    } = (await supabase).auth.getUser();
+    } = await supabase.auth.getUser();
     if (!user) return { error: "User not authenticated" };
 
     const productData = await scrapeProduct(url);
-    if (!productData.name || !productData.price) {
-      console.log(productData, "productData");
+    console.log(productData, "prodData");
+
+    if (!productData.productName || !productData.currentPrice) {
       return { error: "Could not fetch information about this product" };
     }
 
     const newPrice = parseFloat(productData.currentPrice);
     const currency = productData.currencyCode || "USD";
 
-    const { data: existingProduct } = (await supabase)
+    const { data: existingProduct } = await supabase
       .from("products")
-      .select("id, currentPrice")
+      .select("id, current_price")
       .eq("user_id", user.id)
       .eq("url", url)
       .single();
 
     const isUpdate = !!existingProduct;
 
-    const { data: product, error } = (await supabase)
+    const { data: product, error } = await supabase
       .from("products")
       .upsert(
         {
           user_id: user.id,
           url,
-          currentPrice: newPrice,
+          current_price: newPrice,
           currency,
           name: productData.productName,
-          image_url: productData.image_url,
-          update_at: new Date().toISOString(),
+          image_url: productData.productImageUrl,
+          updated_at: new Date().toISOString(),
         },
         {
           onConflict: "user_id, url",
@@ -68,7 +69,7 @@ export async function addProduct(formData) {
       !isUpdate || existingProduct.current_price !== newPrice;
 
     if (shouldAddHistory) {
-      (await supabase).from("price_history").insert({
+      await supabase.from("price_history").insert({
         product_id: product.id,
         price: newPrice,
         currency: currency,
@@ -121,7 +122,7 @@ export async function getPriceHistory(product_id) {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("price_history")
-      .select()
+      .select("*")
       .eq("product_id", product_id)
       .order("checked_at", { ascending: true });
     if (error) throw error;

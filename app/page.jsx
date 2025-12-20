@@ -3,6 +3,8 @@ import AuthButton from "@/components/AuthButton";
 import { createClient } from "@/lib/supabase/server";
 import { Bell, Rabbit, Shield, TrendingDown } from "lucide-react";
 import Image from "next/image";
+import { getProducts } from "./action";
+import ProductCard from "@/components/ProductCard";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -10,7 +12,7 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const products = [];
+  const products = user ? await getProducts() : [];
   const FEATURES = [
     {
       icon: Rabbit,
@@ -75,6 +77,26 @@ export default async function Home() {
             </div>
           )}
         </div>
+
+        {user && products.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 pt-20">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Your tracked products
+              </h3>
+              <span className="text-sm text-gray-400">
+                {products.length}
+                {products.length === 1 ? " Product" : " Products"}
+              </span>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 items-start">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
       </section>
       {user && products.length === 0 && (
         <section className="max-w-2xl mx-auto px-4 pb-20 text-center">
