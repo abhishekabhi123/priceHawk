@@ -3,10 +3,6 @@ import { sendPriceDropAlert } from "@/lib/sendEmailAlert";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-export async function GET() {
-  return NextResponse.json({ message: "Price endpoint is working" });
-}
-
 export async function POST(request) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -24,7 +20,8 @@ export async function POST(request) {
       .from("products")
       .select("*");
     if (productError) throw productError;
-    console.log(`Found ${products.length} items`);
+
+    // console.log(`Found ${products.length} items`);
 
     const results = {
       total: products.length,
@@ -38,8 +35,9 @@ export async function POST(request) {
       try {
         const productData = await scrapeProduct(product.url);
 
-        if (!productData.currentPrice) {
+        if (!productData?.currentPrice) {
           results.failed++;
+          continue;
         }
 
         const newPrice = parseFloat(productData.currentPrice);
@@ -49,9 +47,9 @@ export async function POST(request) {
           .from("products")
           .update({
             current_price: newPrice,
-            currency: productData.currency || product.currency,
-            name: productData.name || product.name,
-            image_url: productData.image_url || product.image_url,
+            currency: productData.currencyCode || product.currency,
+            name: productData.productName || product.name,
+            image_url: productData.productImageUrl || product.image_url,
             updated_at: new Date().toISOString(),
           })
           .eq("id", product.id);
@@ -59,7 +57,7 @@ export async function POST(request) {
         if (oldPrice !== newPrice) {
           await supaBase.from("price_history").insert({
             product_id: product.id,
-            currency: productData.currency || product.currency,
+            currency: productData.currencyCode || product.currency,
             price: newPrice,
           });
 
@@ -69,16 +67,20 @@ export async function POST(request) {
             const { data: user } = await supaBase.auth.admin.getUserById(
               product.user_id
             );
-            if (user?.email) {
-              // email sent
+
+            if (user?.user?.email) {
+              // email
+              console.log(`📧 Sending to ${user.user.email}`);
               const emailResponse = await sendPriceDropAlert(
                 user.email,
-                newPrice,
+                product,
                 oldPrice,
-                product
+                newPrice
               );
               if (emailResponse.success) {
                 results.alertsSent++;
+              } else {
+                console.log("❌ No valid user email found");
               }
             }
           }

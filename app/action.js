@@ -24,7 +24,7 @@ export async function addProduct(formData) {
     if (!user) return { error: "User not authenticated" };
 
     const productData = await scrapeProduct(url);
-    console.log(productData, "prodData");
+    // console.log(productData, "prodData");
 
     if (!productData.productName || !productData.currentPrice) {
       return { error: "Could not fetch information about this product" };
